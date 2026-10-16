@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+roms/
+*.gba
+*.elf
+*.map
+*.json.gz
+work/
+scratch/
