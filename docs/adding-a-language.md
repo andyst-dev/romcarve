@@ -1,7 +1,10 @@
 # Adding a language
 
 This toolkit locates the text of a language that **already exists in a
-cartridge**. It does not translate, and it cannot invent a language. So the first
+cartridge**. It is the second of the three routes described in
+[`three-routes.md`](three-routes.md); if the language exists in the decompilation's
+source (a language fork, a multi-language branch), take route 1 there instead -
+it is days of work rather than weeks, and this file does not apply. It does not translate, and it cannot invent a language. So the first
 question is never "which language do we want" but "which cartridge do we have".
 
 ## Step 0: the two-minute answer

@@ -145,7 +145,9 @@ The tools live in `tools/<stage>/`, named after the question they answer.
 
 `docs/method.md` explains the invariants, the defect classes the audits exist to
 catch, and the numbers behind each lever. `docs/manifest-format.md` documents the
-manifest schema a port has to consume.
+manifest schema a port has to consume. `docs/three-routes.md` names the three ways a
+language gets into a port - from source, from a cartridge only, from a translated
+ROM - and says plainly which one this toolkit implements.
 
 ## What the output looks like
 
