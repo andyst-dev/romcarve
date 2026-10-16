@@ -207,10 +207,38 @@ side** - the tree the text is re-encoded from when a manifest is self-checked.
 | language | encoder side | offsets measured in | landed as |
 |---|---|---|---|
 | English | the decompilation itself | - | the port's base |
-| French | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34) (andyst-dev), completed in [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43) (Sneazynek), metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) |
+| French | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34) (andyst-dev) **closed**, landed through [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43) (Sneazynek); metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) (andyst-dev) |
 | Italian | an Italian tree in a multi-language branch (`data/text/italian/`, `#elif ITALIAN` arms) | BPEI | [port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63) (andyst-dev), re-pinned in [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88) (yesyes-source) |
 | Spanish | the port's Spanish tree | BPES | [port #52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52) (Deunnis) |
-| German | **none exists.** The only German source text is 2 137 literals in [`AsparagusEduardo/pokeemerald`](https://github.com/AsparagusEduardo/pokeemerald) branch `pret_europe_german`; the rest had to be located with no encoder at all | BPED | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96) (andyst-dev), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+| German | **none exists.** The only German source text is 2 137 literals in [`AsparagusEduardo/pokeemerald`](https://github.com/AsparagusEduardo/pokeemerald) branch `pret_europe_german`; the rest had to be located with no encoder at all | BPED | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96) (andyst-dev, open), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+
+### Authorship
+
+The French, Italian and German variants were authored by
+[**andyst-dev**](https://github.com/andyst-dev), on the rails the Spanish variant set:
+
+- **French** - [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34):
+  the manifest over the source files (448 at the time, 454 today),
+  `tools/localize_french.py` and its SHA-1/SHA-256 checks, the BPEF builder profile
+  and web payload, `--french-rom` in the bootstrap and release scripts, the ending
+  tilemap, berry names and Pokédex-unit patches, and `docs/FRENCH.md`. Closed once
+  Sneazynek's follow-up [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43)
+  landed it (port menus, accents, locale tables); native metric units followed in
+  [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62).
+- **Italian** - [#63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63),
+  merged: 449 source files, 19 347 edits, 104 graphics, 275 credits entries, the four
+  Trainer Hill floors, the Italian glyphs, the fourth `CTR_TEXT` column and the
+  Italian ending tilemap, plus the layout patch (metric Pokédex units with a decimal
+  comma, the wider type table, glued berry names). Re-pinned later in
+  [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88).
+- **German** - [#96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96),
+  open: 449 source files, 19 310 edits, 104 graphics, 275 credits entries, the four
+  floors, with **no encoder tree** - built with the tooling in this repository, from
+  [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
+
+The Spanish variant is Deunnis's ([#52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52)),
+and [#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps
+a translated ROM's name and name-prefix order correct.
 
 Note that `pret/pokeemerald` is English only, and `pret_europe` is a branch of
 `AsparagusEduardo/pokeemerald`, not of `pret/`.

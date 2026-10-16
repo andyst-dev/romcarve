@@ -23,10 +23,11 @@ searched for at all.
 branch `french_enhanced` for French, or a multi-language branch that keeps every
 language side by side (`data/text/<lang>/*.inc`, `src/data/text/<lang>/*.h`,
 `#elif ITALIAN` arms in ~50 C and header files, `.ifdef ITALIAN` plus `.include` in
-the assembly) for Italian. It landed as
-[port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63) and
-[#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34), completed in
-[#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43).
+the assembly) for Italian. Italian landed as
+[port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63); French
+opened as [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34)
+(closed, carried in by the follow-up
+[#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43)).
 
 What it buys: the text in source form, and an encoder to re-encode from when the
 manifest is self-checked. What it can also buy: the **offsets**, if the tree builds
