@@ -24,10 +24,11 @@ reference tree *you* point it at; no game image is distributed.
 <sub>[vector version](docs/cartridge-map.svg) &#183; regenerate with `python3 docs/make_cartridge_map.py`</sub>
 
 Two thirds of a cartridge is not shared with its sibling language. The band is the
-whole 16 MiB image, compared 64 KiB at a time; the bars are the 19 310 edits this
-project placed, at the same scale. **Every one of them lands in a block that
-differs** - which is the cross-check that the placements describe the real
-language data and nothing else.
+whole 16 MiB image, compared 64 KiB at a time (26.6 % of blocks are identical;
+byte for byte it is 27.4 %, the finer figure `check_cartridge.py` prints); the bars
+are the 19 310 edits this project placed, at the same scale. **Every one of them
+lands in a block that differs** - the cross-check that the placements describe the
+real language data and nothing else.
 
 ## What came out of it
 
