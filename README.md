@@ -129,7 +129,9 @@ a profile, and the parts that never stop being manual.
 ## The method, in ten stages
 
 Each stage answers one question and writes a JSON artefact the next stage reads.
-The tools live in `tools/<stage>/`, named after the question they answer.
+The tools live in `tools/<stage>/`, named after the question they answer. The pilot
+adds one more question before them - `check`, the cartridge identity - for eleven in
+total.
 
 | stage | question | tools |
 |---|---|---|
