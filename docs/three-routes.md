@@ -14,11 +14,15 @@ the cost you are signing up for.
 
 ## Route 1: the language already exists in source
 
-A language fork of the same base decompilation (`malahx/pokeemerald` for French,
-branch `french_enhanced`) or a multi-language branch that keeps every language side
-by side (`data/text/<lang>/*.inc`, `src/data/text/<lang>/*.h`, `#elif ITALIAN` arms
-in ~50 C and header files, `.ifdef ITALIAN` plus `.include` in the assembly). The
-Italian build of this port came in this way.
+A language fork of the same base decompilation
+([`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced)
+for French, branch `french_enhanced`) or a multi-language branch that keeps every
+language side by side (`data/text/<lang>/*.inc`, `src/data/text/<lang>/*.h`,
+`#elif ITALIAN` arms in ~50 C and header files, `.ifdef ITALIAN` plus `.include` in
+the assembly). The Italian build of this port came in this way, and it landed as
+[pull #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63);
+French landed as [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34)
+and [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43).
 
 What it costs: transplanting strings and wiring the conditional arms. What it does
 not cost: any offset work, because the text is already expressed in the same source
@@ -37,7 +41,9 @@ Two traps worth naming:
 
 German. No decompilation of that language exists, so nothing is transplanted: every
 text span, table, asset and credit entry is located in the retail image. This is
-what the rest of this repository does.
+what the rest of this repository does, and it landed as
+[pull #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96),
+from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
 
 The route needs one thing route 1 does not: **a language that has already been
 mapped**, to serve as the oracle. Every tool here is scored on that language before

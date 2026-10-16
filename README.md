@@ -194,6 +194,26 @@ against, so the manifest refuses to be applied to a drifted tree.
 - Tool docstrings and comments are in French, the working language of the
   project. The method documentation here is in English.
 
+## Provenance
+
+Where each language of the port came from, and what landed it. The links go to the
+public record rather than to a summary of it.
+
+| language | route | where the text came from | landed as |
+|---|---|---|---|
+| English | - | the decompilation itself | the port's base |
+| Italian | 1 | a multi-language branch in the `pret_europe` style: per-language trees under `data/text/italian/`, `#elif ITALIAN` arms, `.ifdef ITALIAN` includes | [port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63), re-pinned in [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88) |
+| French | 1 | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34), completed in [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43), metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) |
+| Spanish | 1 | the port's multi-language tree | [port #52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52) |
+| German | 2 | no source exists: located in BPED by this toolkit | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+
+The Italian, French and Spanish manifests ship inside the port under
+`tools/locales/`; they are this toolkit's **inputs**, and the oracle every tool here
+was scored on. The German manifest is in #96. A separate fix for the port's own
+test harness, found while building the German variant, is
+[#97](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/97), and [#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps a translated ROM's
+name and name-prefix order correct.
+
 ## Credits
 
 - [`pret/pokeemerald`](https://github.com/pret/pokeemerald) - the English
