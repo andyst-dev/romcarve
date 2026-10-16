@@ -43,7 +43,8 @@ STAGES = [
          tool="tools/check_cartridge.py", artifact=None,
          manual="nothing: a wrong dump invalidates everything downstream"),
     dict(key="ref", question="where does the target stop matching the reference byte for byte?",
-         tool="tools/ref/zones.py", artifact="matches_*.json",
+         tool="tools/ref/zones.py", artifact=None,
+         also="tools/ref/matcher2.py -> matches_*.json (content matches at variable offset)",
          manual="decide which differences are language data and which are relocations"),
     dict(key="carve", question="with no manifest for the target, where are its text objects?",
          tool="tools/carve/carve7.py", artifact="mapping_*.json",
@@ -126,6 +127,8 @@ def cmd_plan(args) -> int:
         print(f"{i:>2}. {s['key']:<9} {s['question']}")
         print(f"    tool     {s['tool']}")
         print(f"    artefact {s['artifact'] or 'stdout only - not resumable'}")
+        if s.get("also"):
+            print(f"    also     {s['also']}")
         print(f"    human    {s['manual']}")
     print(f"\n{len(stages)} stages. Each one is a question; `run <stage> -- <args>` "
           f"executes its tool against the workspace in LOC_WORK.")
@@ -137,12 +140,13 @@ def cmd_status(args) -> int:
     print(f"{'stage':<10}{'artefact':<24}{'state':<10}tool")
     for s in STAGES:
         art = s["artifact"]
-        if art is None:
+        if art is None and not s.get("also"):
             state, shown = "n/a", "-"
         else:
-            hits = sorted(WORK.glob(art))
+            pattern = art or s["also"].split("-> ")[1].split(" ")[0]
+            hits = sorted(WORK.glob(pattern))
             state = "present" if hits else "absent"
-            shown = hits[-1].name if hits else art
+            shown = hits[-1].name if hits else pattern
         print(f"{s['key']:<10}{shown:<24}{state:<10}{s['tool']}")
     mapping = WORK / "mapping_de_verifie.json"
     if mapping.is_file():
