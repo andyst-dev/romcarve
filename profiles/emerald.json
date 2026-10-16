@@ -1,0 +1,54 @@
+{
+  "game": "Pokemon Emerald",
+  "base_decompilation": "pret/pokeemerald",
+  "reference_symbol_source": "the base decompilation's english build (pokeemerald.elf)",
+  "charmap": "charmap.txt, read from the reference tree (LOC_REF_TREE)",
+  "manifest_schema": "0.1",
+  "notes": [
+    "Cartridge file names are looked up in LOC_ROMS; the sha1 is what identifies the dump.",
+    "A variant language needs a reference language: its manifest is the oracle every tool is scored on, and its tree supplies the source spans.",
+    "IT, FR and ES were mapped before DE; any of them can serve as the reference, and DE's own mapping can serve the next language.",
+    "Table shapes the tools know about today: fixed-stride rows, struct-of-strings records, easy-chat group chains and u32 word indices. A game with different shapes needs a descriptor, not a new pipeline."
+  ],
+  "languages": {
+    "EN": {
+      "code": "BPEE",
+      "sha1": "f3ae088181bf583e55daf962a92bb46f4f1d07b7",
+      "cartridge": "emeraude_en.gba",
+      "manifest": null,
+      "role": "base",
+      "note": "the decompilation's own language: no manifest needed, it is the source of the spans"
+    },
+    "DE": {
+      "code": "BPED",
+      "sha1": "61c2eb2b380b1a75f0c94b767a2d4c26cd7ce4e3",
+      "cartridge": "Pokemon - Smaragd-Edition (Germany).gba",
+      "manifest": "german.json.gz",
+      "role": "variant",
+      "reference": "IT",
+      "note": "mapped by this toolkit: 19 310 edits in 449 files, 37 source texts left unmapped"
+    },
+    "FR": {
+      "code": "BPEF",
+      "sha1": "ca666651374d89ca439007bed54d839eb7bd14d0",
+      "cartridge": "emeraude_fr.gba",
+      "manifest": "french.json.gz",
+      "role": "reference"
+    },
+    "IT": {
+      "code": "BPEI",
+      "sha1": "1692db322400c3141c5de2db38469913ceb1f4d4",
+      "cartridge": "it_bpei.gba",
+      "manifest": "italian.json.gz",
+      "role": "reference",
+      "note": "the oracle this toolkit was validated against"
+    },
+    "ES": {
+      "code": "BPES",
+      "sha1": "fe1558a3dcb0360ab558969e09b690888b846dd9",
+      "cartridge": "esmeralda_es.gba",
+      "manifest": "spanish.json.gz",
+      "role": "reference"
+    }
+  }
+}

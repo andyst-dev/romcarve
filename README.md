@@ -89,6 +89,42 @@ differing regions >= 16 KiB  : 6
 Two thirds of a cartridge is *not* shared with its sibling language. Those regions
 are the language data, and that is what the carver walks.
 
+## The pilot
+
+The 86 tools share a workspace and an order. `romcarve.py` is the entry point that
+knows both: it reads a per-game profile, prints the questions in the order they have
+to be asked with the tool that answers each and **what stays a human decision**,
+tracks which artefacts exist, runs a stage with your arguments and logs it, and
+summarises what a manifest claims.
+
+```console
+$ python3 romcarve.py languages
+Pokemon Emerald - base decompilation pret/pokeemerald
+code  language    sha1                                      reference manifest  cartridge
+BPED  DE          61c2eb2b380b1a75f0c94b767a2d4c26cd7ce4e3  german.json.gz      found
+BPEE  EN          f3ae088181bf583e55daf962a92bb46f4f1d07b7  -                   found
+...
+
+$ python3 romcarve.py plan audit
+ 1. audit     which entries are false?
+    tool     tools/audit/dup_audit.py
+    artefact dup_report.json
+    human    read what the audits cannot see: files shifted by exactly one record
+
+$ python3 romcarve.py run ref -- DE      # executes the stage's tool, logs it
+$ python3 romcarve.py report work/german.json.gz
+files      449
+edits      19310
+    c           9078
+    asm         7945
+    u16s        1186
+...
+```
+
+`docs/adding-a-language.md` is the honest version of "can we do another language":
+the two-minute structural test, what a language needs, what a new game needs beyond
+a profile, and the parts that never stop being manual.
+
 ## The method, in ten stages
 
 Each stage answers one question and writes a JSON artefact the next stage reads.
@@ -149,9 +185,10 @@ against, so the manifest refuses to be applied to a drifted tree.
   upstream carries no `tools/agbcc` (it is installed from `pret/agbcc`, see
   `build/container_de_validate.sh`). The recipe and the exact
   `nm -S --defined-only` format are in `docs/method.md`.
-- **These are the tools as used, not a CLI.** They share a workspace of JSON
-  artefacts and expect the reference language to have been mapped first: the
-  method needs one language you already trust, to validate each new tool against.
+- **The pilot drives the tools, it does not replace the reading.** It knows the
+  order and the artefacts, and it says on every stage what a human still has to do
+  there. A new game is a profile plus whatever table descriptors it needs; a new
+  language needs one already mapped, to serve as the oracle.
 - Tool docstrings and comments are in French, the working language of the
   project. The method documentation here is in English.
 
