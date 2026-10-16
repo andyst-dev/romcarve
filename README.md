@@ -3,13 +3,14 @@
 Find a language's text inside a retail cartridge and pin it into a decompilation
 port, without having a decompilation tree for that language.
 
-Pokemon Emerald shipped in five languages and exactly one of them (English) has a
-matching decompilation project. The other four can still be built as
-localizations of a port, but first every piece of text, every table and every
-credit has to be *located in the cartridge* - by offset and size - and pinned
-into a manifest the port can apply. This repository is the tooling that did that
-for **German** (`BPED`, `Smaragd-Edition`), plus the audits that keep the result
-honest.
+Pokemon Emerald shipped in five languages. English has a decompilation that
+reproduces the retail ROM; French has a fork that does, and Italian and Spanish have
+trees that carry their text; **German has no decompilation of any kind**. A language
+still gets into a port through a manifest of `(source span, cartridge offset)` rows
+- so every piece of text, every table and every credit entry has to be *located in
+the cartridge* first. This repository is the tooling that did that for German
+(`BPED`, `Smaragd-Edition`) with no encoder tree to lean on, plus the audits that
+keep the result honest.
 
 It is not a framework: these are the tools as they were used, one per question,
 and the method they implement. Everything here reads the cartridges and the
@@ -196,23 +197,31 @@ against, so the manifest refuses to be applied to a drifted tree.
 
 ## Provenance
 
-Where each language of the port came from, and what landed it. The links go to the
-public record rather than to a summary of it.
+The port ships five languages, and they share one pipeline: a checked-in manifest of
+source spans and ROM offsets, staged from the reader's own cartridge at bootstrap
+time and carrying no game text. What differs between languages is the **encoder
+side** - the tree the text is re-encoded from when a manifest is self-checked.
 
-| language | route | where the text came from | landed as |
+| language | encoder side | offsets measured in | landed as |
 |---|---|---|---|
-| English | - | the decompilation itself | the port's base |
-| Italian | 1 | a multi-language branch in the `pret_europe` style: per-language trees under `data/text/italian/`, `#elif ITALIAN` arms, `.ifdef ITALIAN` includes | [port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63), re-pinned in [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88) |
-| French | 1 | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34), completed in [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43), metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) |
-| Spanish | 1 | the port's multi-language tree | [port #52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52) |
-| German | 2 | no source exists: located in BPED by this toolkit | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+| English | the decompilation itself | - | the port's base |
+| French | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34) (andyst-dev), completed in [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43) (Sneazynek), metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) |
+| Italian | an Italian tree in a multi-language branch (`data/text/italian/`, `#elif ITALIAN` arms) | BPEI | [port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63) (andyst-dev), re-pinned in [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88) (yesyes-source) |
+| Spanish | the port's Spanish tree | BPES | [port #52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52) (Deunnis) |
+| German | **none exists.** The only German source text is 2 137 literals in [`AsparagusEduardo/pokeemerald`](https://github.com/AsparagusEduardo/pokeemerald) branch `pret_europe_german`; the rest had to be located with no encoder at all | BPED | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96) (andyst-dev), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+
+Note that `pret/pokeemerald` is English only, and `pret_europe` is a branch of
+`AsparagusEduardo/pokeemerald`, not of `pret/`.
 
 The Italian, French and Spanish manifests ship inside the port under
 `tools/locales/`; they are this toolkit's **inputs**, and the oracle every tool here
-was scored on. The German manifest is in #96. A separate fix for the port's own
+was scored on. German is the case this repository exists for: with no encoder tree,
+both sides of every edit had to be established from the cartridge alone, which is
+what the carver, the anchors and the audits do. A separate fix for the port's own
 test harness, found while building the German variant, is
-[#97](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/97), and [#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps a translated ROM's
-name and name-prefix order correct.
+[#97](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/97), and
+[#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps
+a translated ROM's name and name-prefix order correct.
 
 ## Credits
 

@@ -1,70 +1,85 @@
 # Three ways a language gets into a port
 
-This repository implements **one** of them. Naming all three is the only honest way
-to say what it is for, because the route you take decides the tools you need and
-the cost you are signing up for.
+The port ships five languages and they share one pipeline: a checked-in manifest of
+source spans and ROM offsets, staged from the reader's own cartridge at bootstrap
+time, carrying no game text. What changes from one language to the next is where the
+**two sides of an edit** come from - the text, and the offset it sits at.
 
-| | route 1: the language is in source | route 2: cartridge only | route 3: a translated ROM |
+| | route A: a language tree exists | route B: no tree at all | route C: a translated ROM |
 |---|---|---|---|
-| precondition | a same-base language fork, or a multi-language branch | a retail cartridge of that language, no decompilation | a translated/hacked cartridge |
-| what you do | transplant the strings, wire the `#ifdef` arms | locate every span in the cartridge | same as route 2, if the structure holds |
-| offset work | none | all of it | all of it |
-| cost, measured | days, mostly mechanical | 449 files, 19 310 edits, one week of sessions, 37 unmapped, 21 repair passes | route 2 plus the structural test |
-| implemented here | no | **yes** | yes, with a caveat |
+| precondition | a language fork or a multi-language branch of the same base | a retail cartridge of that language, and no decompilation of it | a translated or hacked cartridge |
+| the text comes from | that tree | the cartridge, decoded with the charmap | the hacked cartridge |
+| the offsets come from | that tree's own build, when it reproduces the retail ROM | the cartridge, located by this toolkit | the cartridge, located by this toolkit |
+| validated against | its own re-encoding | an already-mapped language, as the oracle | the same |
+| used by the port for | French, Italian, Spanish | **German** | not yet |
 
-## Route 1: the language already exists in source
+The distinction that matters is not "easy route versus hard route". It is whether an
+**encoder tree** exists, because that decides whether the offsets have to be
+searched for at all.
 
-A language fork of the same base decompilation
-([`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced)
-for French, branch `french_enhanced`) or a multi-language branch that keeps every
+## Route A: the language has a decompilation of its own
+
+[`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced)
+branch `french_enhanced` for French, or a multi-language branch that keeps every
 language side by side (`data/text/<lang>/*.inc`, `src/data/text/<lang>/*.h`,
 `#elif ITALIAN` arms in ~50 C and header files, `.ifdef ITALIAN` plus `.include` in
-the assembly). The Italian build of this port came in this way, and it landed as
-[pull #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63);
-French landed as [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34)
-and [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43).
+the assembly) for Italian. It landed as
+[port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63) and
+[#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34), completed in
+[#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43).
 
-What it costs: transplanting strings and wiring the conditional arms. What it does
-not cost: any offset work, because the text is already expressed in the same source
-spans.
+What it buys: the text in source form, and an encoder to re-encode from when the
+manifest is self-checked. What it can also buy: the **offsets**, if the tree builds
+the retail ROM byte for byte - find the commit whose `rom.sha1` equals the retail
+hash, and its linker map and symbol table become a ground truth you do not have to
+reconstruct. That is the shortcut this route offers, and why the French work started
+by pinning a fork commit rather than by probing a cartridge.
 
 Two traps worth naming:
 
 - **A fork's default branch may not match retail.** `french_enhanced` merged a
-  feature branch at its tip and builds a different ROM. Find the commit whose
-  `rom.sha1` equals the retail hash, verify with `shasum -a 1`, and build that.
+  feature branch at its tip and builds a different ROM. Verify with `shasum -a 1`
+  before building anything.
 - **Structural drift.** Diff against the *same* base version the port pins, and
   align renamed files by symbol and by position inside a run of labels sharing a
-  long prefix, not by index alone.
+  long prefix, not by index alone. The fork's tree is not the port's tree, so the
+  spans still have to be re-derived on the port's side whatever the offsets say.
 
-## Route 2: the language exists as a cartridge and nowhere else
+## Route B: the language exists as a cartridge and nowhere else
 
-German. No decompilation of that language exists, so nothing is transplanted: every
-text span, table, asset and credit entry is located in the retail image. This is
-what the rest of this repository does, and it landed as
-[pull #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96),
-from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
+German. No decompilation of that language exists, so nothing is transplanted and
+nothing is re-encoded from a language tree: every text span, table, asset and credit
+entry is located in the retail image, and that is what the rest of this repository
+does. It landed as
+[port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96), from
+[issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
 
-The route needs one thing route 1 does not: **a language that has already been
+The one thing this route needs from elsewhere: **a language that has already been
 mapped**, to serve as the oracle. Every tool here is scored on that language before
-it is pointed at a new one, and that is what makes a 97 % placement rate
-trustworthy rather than optimistic. Italian and French took route 1, so their
-manifests exist - which is exactly why they appear in this repository as inputs.
+it is pointed at a new one, which is what makes a 97 % placement rate trustworthy
+rather than optimistic. Italian and French took route A, so their manifests exist -
+which is why they appear in this repository as inputs.
 
-## Route 3: a translated ROM exists
+The only German source text anywhere is 2 137 literals in the `pret_europe_german`
+branch of `AsparagusEduardo/pokeemerald` (note: `pret/pokeemerald` itself is English
+only, and `pret_europe` is a branch of that fork, not of `pret/`). All 2 137 were
+found in the retail cartridge, so those edits needed no alignment at all - a
+shortcut, not a substitute for the route.
 
-A fan translation or hack. The work is route 2, with one extra precondition: the
+## Route C: a translated ROM exists
+
+A fan translation or hack. The work is route B, with one extra precondition: the
 hack must be the same game at the same offsets, with shifts that are constant per
 region. A hack that reorders data, grows tables or moves pointers breaks the
 assumption, and no tooling repairs that.
 
 The structural test is two minutes and it is in
 [`adding-a-language.md`](adding-a-language.md): compare the two cartridges block by
-block, and read how many differing regions there are and how many `0xFF`
-terminators each holds. Structure shared, differences language-shaped: route 3 is
+block, then read how many differing regions there are and how many `0xFF`
+terminators each holds. Structure shared, differences language-shaped: route C is
 open.
 
-## What none of the three routes removes
+## What none of the routes removes
 
 Per-language work that lives in the port, not here:
 
