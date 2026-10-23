@@ -46,9 +46,12 @@ here is scored on Italian first, and only then pointed at German.
 | an English block inside the German cartridge | an anchor that looks perfect and is English | `langcheck_de` |
 | braille text | the object starts 6 bytes into the text | measured once, applied as `offset + 6` |
 
-## Where the 19 310 edits came from
+## Historical first-pass placement levers
 
-Each lever was measured on the Italian oracle before use, then applied:
+The original 19 310-operation pass used the following levers, measured on the
+Italian oracle before use. This is a historical breakdown, not a final-coverage
+percentage; the final 19 336 operations and 37 decisions are recorded in
+[`german-completion.md`](german-completion.md):
 
 | lever | count | oracle |
 |---|---|---|
@@ -65,7 +68,7 @@ Each lever was measured on the Italian oracle before use, then applied:
 
 Non-text sections resolve differently again:
 
-- **graphics** (104 located): the multi-language source carries per-language asset
+- **graphics** (105 in the final manifest): the multi-language source carries per-language asset
   files that are byte-identical to the cartridge. Each `.lz` is verified by
   decompressing the cartridge bytes and comparing with the uncompressed sibling.
 - **Trainer Hill floors** (4 tables): a charmap-encoded needle, because the tables
@@ -101,33 +104,30 @@ addresses in **decimal**:
     .size NAME, 40             # 0 when unknown
 ```
 
-78 450 symbols in the Italian file, about 7 300 of them at address 0. Produce one
-with `nm -S --defined-only <elf>` on a build of the **game**, then
-`tools/manifest/emit_symbols.py`.
+`tools/manifest/emit_symbols.py` formats an existing GBA ELF's defined symbols.
+It does not establish that the ELF matches the target retail ROM. Build identity
+and address evidence are separate checks. Never substitute addresses from the
+3DS executable, and never certify a German retail reference merely because a
+localized GBA link succeeded. The 3DS port's tree is not a retail GBA rebuild;
+forcing it through the GBA linker previously overflowed IWRAM and did not prove
+retail layout.
 
-It cannot be produced from the port's tree, and the blockers are worth knowing
-before trying:
+The final German reference instead derives addresses directly from BPED evidence:
+structural records, verified localization placements and exact content matches.
+Pointer-bearing objects are checked as records, not just payloads. It has 48 858
+names, of which 15 087 have evidenced nonzero addresses. All remaining names stay
+at zero. The assembler file contains metadata directives, not cartridge data.
+It is a partial reference, not a complete decompilation.
 
-1. the pinned upstream is **modern-only** - `tools/agbcc` is not a submodule and
-   the tree carries none, so the "`make` in the upstream tree's root" route that
-   RELEASING.md documents needs agbcc installed into the tree first
-   (`git clone https://github.com/pret/agbcc && ./build.sh && ./install.sh <tree>`;
-   `build/container_de_validate.sh` does exactly that). Without it the build stops
-   at `tools/agbcc/bin/agbcc: No such file or directory`, and the fallback host
-   compiler dies on `stdio.h`;
-2. **GCC 14+** turns what the tree relies on into hard errors: the sound table in
-   `m4a.c` picks its branch off `__STDC_VERSION__ < 202311L` and the C23 branch
-   calls unprototyped names; `stub.c` defines GameCube stubs with no argument
-   against a header that declares a pointer;
-3. the port's makefile **dropped `ASM_PSEUDO_OP_CONV` and `FIX_UNDERSCORE`** while
-   its own data rules still call them (`3ds_port/full.mk` has the conversion;
-   `FIX_UNDERSCORE` is a no-op on an EABI toolchain);
-4. even with (1)-(3) unblocked the link **overflows GBA IWRAM** - 87 108 bytes
-   into 32 KiB, 265 % - and misses `__getreent`. The port's tree is a 3DS tree;
-   the game is built by `3ds_port/full.mk`, not by the upstream Makefile.
+Use the reference in the real recipe generator, keep the game-literal limit
+unchanged, and reconstruct the actual production pack. Check recipe outputs,
+generator inputs, every generated output and every final pack entry byte-for-byte.
+The integrated German head passes that gate on macOS and Linux; the complete
+numbers and limits are in the [completion record](german-completion.md).
 
-So build the game from a **pristine pinned upstream plus the localization patches
-for that language**, and take the symbol table from that ELF.
+`romcarve.py report <manifest> --symbols <reference.s.gz>` reports metadata shape
+and the split between nonzero and unresolved addresses. It rejects data
+instructions and malformed records, but does not validate cartridge addresses.
 
 ## Running the tools
 

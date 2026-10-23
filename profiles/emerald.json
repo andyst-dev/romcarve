@@ -1,7 +1,7 @@
 {
   "game": "Pokemon Emerald",
   "base_decompilation": "pret/pokeemerald",
-  "reference_symbol_source": "the base decompilation's english build (pokeemerald.elf)",
+  "reference_symbol_source": "English retail-matching build for reference names and shapes; target ROM evidence for target-language addresses",
   "charmap": "charmap.txt, read from the reference tree (LOC_REF_TREE)",
   "manifest_schema": "0.1",
   "notes": [
@@ -26,7 +26,7 @@
       "manifest": "german.json.gz",
       "role": "variant",
       "reference": "IT",
-      "note": "mapped by this toolkit: 19 310 edits in 449 files, 37 source texts left unmapped"
+      "note": "finalized BPED integration: 19 336 staging operations in 449 files; all 37 original source decisions resolved; zero unmapped; partial retail-derived reference table"
     },
     "FR": {
       "code": "BPEF",

@@ -28,6 +28,7 @@ import shlex
 import subprocess
 import sys
 import time
+import zlib
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -190,12 +191,61 @@ def cmd_run(args) -> int:
     return proc.returncode
 
 
+def reference_summary(path: Path) -> dict:
+    """Read metadata directives, not game bytes or executable expressions.
+
+    This checks the table's shape only. A nonzero address is not evidence that
+    the address belongs to the supplied cartridge.
+    """
+    import re
+    raw = path.read_bytes()
+    text = (gzip.decompress(raw) if path.suffix == '.gz' else raw).decode('utf-8')
+    records = {}
+    pattern = re.compile(r'\.(global|type|equ|size)\s+([A-Za-z_.$][A-Za-z0-9_.$]*)(?:,\s*(.+))?')
+    for number, line in enumerate(text.splitlines(), 1):
+        line = line.split('#', 1)[0].strip()
+        if not line or line == '.syntax unified':
+            continue
+        match = pattern.fullmatch(line)
+        if not match:
+            raise ValueError(f'line {number}: unsupported directive')
+        directive, name, value = match.groups()
+        record = records.setdefault(name, {})
+        if directive in record:
+            raise ValueError(f'line {number}: duplicate {directive} for {name}')
+        if directive == 'global':
+            if value is not None:
+                raise ValueError(f'line {number}: unexpected global value')
+        elif directive == 'type':
+            if value not in ('%object', '%function'):
+                raise ValueError(f'line {number}: unsupported symbol type')
+        else:
+            if value is None or not re.fullmatch(r'(?:0[xX][0-9a-fA-F]+|[0-9]+)', value):
+                raise ValueError(f'line {number}: expected an unsigned integer')
+            value = int(value, 16 if value.lower().startswith('0x') else 10)
+            if value > 0xffffffff:
+                raise ValueError(f'line {number}: integer exceeds 32 bits')
+        record[directive] = value
+    for name, record in records.items():
+        if set(record) != {'global', 'type', 'equ', 'size'}:
+            raise ValueError(f'incomplete reference record for {name}')
+    nonzero = sum(record['equ'] != 0 for record in records.values())
+    return {'names': len(records), 'nonzero': nonzero,
+            'unresolved': len(records) - nonzero}
+
+
 def cmd_report(args) -> int:
     import collections
     profile = load_profile(profile_name(args))
     path = Path(args.manifest) if args.manifest else WORK / "german.json.gz"
     if not path.is_file():
         sys.exit(f"no manifest at {path} (build one with `run manifest`, or pass a path)")
+    symbols = None
+    if args.symbols:
+        try:
+            symbols = reference_summary(Path(args.symbols))
+        except (OSError, ValueError, UnicodeError, EOFError, zlib.error) as error:
+            sys.exit(f"invalid reference metadata: {error}")
     man = json.loads(gzip.decompress(path.read_bytes()))
     edits = [e for f in man["files"].values() for e in f["edits"]]
     kinds = collections.Counter(e[4] for e in edits)
@@ -214,6 +264,18 @@ def cmd_report(args) -> int:
     unmapped = man.get("unmapped_source_texts")
     print(f"unmapped   {len(unmapped) if isinstance(unmapped, (list, dict)) else unmapped} "
           f"source texts")
+    decisions = man.get("source_text_decisions")
+    if decisions is not None:
+        print(f"decisions  {len(decisions)}")
+        for disposition, count in sorted(collections.Counter(
+                d["disposition"] for d in decisions).items()):
+            print(f"    {disposition:<26}{count}")
+    if "id_lists" in man:
+        print(f"id_lists   {len(man['id_lists'])}")
+    if symbols is not None:
+        print(f"symbols    {symbols['names']} names, {symbols['nonzero']} nonzero, "
+              f"{symbols['unresolved']} unresolved")
+        print("           metadata only; cartridge addresses are not validated")
     if man.get("checks"):
         print(f"checks     {json.dumps(man['checks'])[:200]}")
     return 0
@@ -241,6 +303,7 @@ def main() -> int:
 
     p = sub.add_parser("report", help="summarise a manifest")
     p.add_argument("manifest", nargs="?")
+    p.add_argument("--symbols", help="inspect a reference .s or .s.gz metadata table")
 
     args = ap.parse_args()
     return {"languages": cmd_languages, "check": cmd_check, "plan": cmd_plan,

@@ -22,6 +22,8 @@ Everything is measured, nothing is inferred at apply time.
 | `credits_entries` | integer | how many pointers that table holds (275 for Emerald). |
 | `floors` | array | `[symbol, rom_offset, size]` for tables that are `static` in source and must be located by content. |
 | `unmapped_source_texts` | integer or array | how many source texts could **not** be located. Listed, never guessed. |
+| `source_text_decisions` | array | explicit dispositions and reasons for reviewed source gaps; an accepted placement, a retail-table adaptation or a retained invariant. |
+| `id_lists` | object | symbol -> `[rom_offset, size]` for complete identifier lists whose cartridge order must also be staged. |
 | `checks` | object | free-form audit results recorded at build time. |
 
 ## A file entry
@@ -35,10 +37,10 @@ Everything is measured, nothing is inferred at apply time.
 
 - `sha256` pins the source file the spans were measured against, so a drifted tree
   is rejected instead of silently mis-localized. This is the single most important
-  field in the format: the spans are byte offsets, and any upstream patch that
-  inserts bytes above them invalidates them.
+  field in the format: source spans are character indices in decoded text.
+  Inserting characters above them invalidates them; the hash covers UTF-8 bytes.
 - `edits` is a list of `[source_start, source_end, rom_offset, size, kind]`:
-  - `source_start`, `source_end` - byte span inside the source file, `end` exclusive;
+  - `source_start`, `source_end` - character span inside the decoded source file, `end` exclusive;
   - `rom_offset` - offset in the cartridge image (0-based, as read from the file);
   - `size` - how many bytes the localized data occupies in the cartridge;
   - `kind` - the shape of the data, see below.
@@ -57,6 +59,7 @@ Italian, and the ratio between the two is what `ratio_audit` checks.
 | `u16array` | an array of `u16` identifiers |
 | `bard` | a fixed 22-row table (the Lilycove quiz answers) |
 | `u8rows22`, `u16rows10`, ... | fixed-stride row tables, named by element width and row count |
+| `u8pages4x9`, `u8rows9` | grouped raw keyboard tables; explicit row/page dimensions, without an implicit string terminator |
 
 A stager needs the kind because a `u16s` string is decoded differently from a `c`
 string, and a `u32` field is a number, not text.
@@ -69,7 +72,8 @@ string, and a `u32` field is a number, not text.
 2. For each edit, read `size` bytes at `rom_offset`, decode them for the kind
    using the decompilation's charmap, and write the result into the source span.
 3. For `graphics`, copy the cartridge bytes into the asset path.
-4. For `credits` and `floors`, rewrite the table from the cartridge.
+4. For `credits`, `floors` and `id_lists`, rewrite the tables from the cartridge;
+   verify identifier order in the compiled output, not just the manifest.
 5. Leave the `unmapped_source_texts` alone and say so. An untranslated string is a
    known gap; a wrongly-located string is a crash or a corrupted line.
 
@@ -78,4 +82,11 @@ string, and a `u32` field is a number, not text.
 The German manifest was assembled by `tools/manifest/build_de_manifest.py` from
 the verified mapping and then self-checked by `de_manifest_verify.py`, which
 re-verifies every hash, every span bound and every cartridge offset before the
-file is written. `docs/method.md` describes how the mapping was produced.
+file is written. `docs/method.md` describes how the mapping was produced. The final port also
+adds reviewed source decisions and grouped keyboard staging; see
+[`german-completion.md`](german-completion.md).
+
+Raw `__()` initializers are not ordinary `_()` strings: they do not gain an EOS
+byte automatically. Use the source buffer capacity and the charmap to bound them
+before staging. A plausible neighboring text run can otherwise turn a clearing
+buffer into a stack overwrite.

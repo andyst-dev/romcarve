@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "verified_revision": "d45dc3b7c49f4b2ab8926efb25168095fab165a7",
+  "base_revision": "0087891ad2bf7c06a74b9a2403995f0b6ee9d27e",
+  "pull_request": "https://github.com/ZallaxDev/emerald-3ds/pull/96",
+  "ci_run": "https://github.com/ZallaxDev/emerald-3ds/actions/runs/39972088637",
+  "ci_jobs": {
+    "host-tests": "success",
+    "build-3ds": "success",
+    "audit-and-python": "success"
+  },
+  "cartridge": {
+    "code": "BPED",
+    "sha1": "61c2eb2b380b1a75f0c94b767a2d4c26cd7ce4e3"
+  },
+  "manifest": {
+    "sha256": "86f3905f85196ab35ce87c9f8b05f7c37518da86364802e8335d826874dae622",
+    "source_files": 449,
+    "staging_operations": 19336,
+    "operations_by_kind": {
+      "asm": 7945,
+      "bard": 19,
+      "c": 9102,
+      "u16array": 72,
+      "u16rows10": 1,
+      "u16s": 1186,
+      "u32": 1008,
+      "u8pages4x9": 1,
+      "u8rows22": 1,
+      "u8rows9": 1
+    },
+    "graphics": 105,
+    "credits_entries": 275,
+    "trainer_hill_floors": 4,
+    "unmapped_source_texts": 0,
+    "source_decisions": {
+      "placement_accepted": 28,
+      "retail_keyboard_table": 8,
+      "retain_source_invariant": 1
+    },
+    "easy_chat_id_lists": 4
+  },
+  "reference_symbols": {
+    "names": 48858,
+    "nonzero": 15087,
+    "unresolved": 33771,
+    "sha256": "cba4a040a7d711cd1d9c8a1b825756d9d78a26eab7da4ae9a49284821cb0e883",
+    "classification": "partial BPED-derived metadata, not a complete German decompilation"
+  },
+  "reconstruction": {
+    "recipe_entries_exact": 6391,
+    "generator_inputs_exact": 2202,
+    "generated_outputs_exact": 5,
+    "pack_entries_exact": 6396,
+    "pak_verified": 6396,
+    "abi": "28be5e3c",
+    "sha256": "d03bf788c50978142b1a2eb00a0cb662d4f61eece4aae78719fd07b22fbb3662",
+    "game_literal_bytes": 3361,
+    "game_literal_limit": 4096,
+    "platforms": [
+      "macOS",
+      "Linux"
+    ]
+  },
+  "builder_tests": {
+    "run": 219,
+    "skipped": 4,
+    "failures": 0,
+    "platforms": [
+      "macOS",
+      "Linux"
+    ]
+  },
+  "human_checks": {
+    "tested_parent": "1823759cf05d437b8b148800e11ceea1aede851e",
+    "keyboard_umlauts_inserted": true,
+    "kp_on_both_healthbars": true,
+    "first_battle_completed_without_crash": true,
+    "localized_naming_and_battle_interface_sources_unchanged_after_integration": true
+  },
+  "limits": [
+    "No complete playthrough or physical-console validation.",
+    "Human play checks are on the tested parent, not a second playthrough after integration.",
+    "No full Windows/web release-packaging run on this revision.",
+    "Unproven symbol addresses remain zero."
+  ]
+}

@@ -5,8 +5,8 @@ port, without having a decompilation tree for that language.
 
 Pokemon Emerald shipped in five languages. English has a decompilation that
 reproduces the retail ROM; French has a fork that does, and Italian and Spanish have
-trees that carry their text; **German has no decompilation of any kind**. A language
-still gets into a port through a manifest of `(source span, cartridge offset)` rows
+trees that carry their text. **No complete German retail-matching encoder tree was
+available to this work.** A language still gets into a port through a manifest of `(source span, cartridge offset)` rows
 - so every piece of text, every table and every credit entry has to be *located in
 the cartridge* first. This repository is the tooling that did that for German
 (`BPED`, `Smaragd-Edition`) with no encoder tree to lean on, plus the audits that
@@ -17,44 +17,56 @@ and the method they implement. Everything here reads the cartridges and the
 reference tree *you* point it at; no game image is distributed.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/cartridge-map-dark.png">
-  <img alt="A 16 MiB cartridge shared by two languages: 26.6 % is byte-identical at the same offset, and all 19 310 placed edits fall inside the regions that differ"
-       src="docs/cartridge-map.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/cartridge-map-final-dark.png">
+  <img alt="A 16 MiB cartridge shared by two languages: 26.6 % of 64 KiB blocks are identical, and all 19 336 staging operations fall inside differing blocks"
+       src="docs/cartridge-map-final.png">
 </picture>
 
-<sub>[vector version](docs/cartridge-map.svg) &#183; regenerate with `python3 docs/make_cartridge_map.py`</sub>
+<sub>[vector version](docs/cartridge-map-final.svg) &#183; regenerate with `python3 docs/make_cartridge_map.py`</sub>
 
-Two thirds of a cartridge is not shared with its sibling language. The band is the
-whole 16 MiB image, compared 64 KiB at a time (26.6 % of blocks are identical;
-byte for byte it is 27.4 %, the finer figure `check_cartridge.py` prints); the bars
-are the 19 310 edits this project placed, at the same scale. **Every one of them
-lands in a block that differs** - the cross-check that the placements describe the
-real language data and nothing else.
+The band is the whole 16 MiB image, compared 64 KiB at a time: 26.6 % of
+blocks are identical. Byte for byte it is 27.4 %, the finer figure printed by
+`check_cartridge.py`. The bars show the **19 336 final staging operations**, spread
+across 36 blocks. Every operation starts in a differing block. Differences also
+include pointers and relocated data, not only translated text.
 
 ## What came out of it
 
-The German manifest, measured against the same 449 source files as the Italian
-one it was derived from:
+The German integration is finalized and published in
+[port #96](https://github.com/ZallaxDev/emerald-3ds/pull/96), at tested revision
+`d45dc3b7c49f4b2ab8926efb25168095fab165a7`, based on public `dev` `0087891`.
+The PR is open for maintainer review, not described as merged.
 
 | | German | Italian (reference) | French |
 |---|---|---|---|
 | source files edited | 449 | 449 | 454 |
-| text edits placed | 19 310 | 19 347 | 19 356 |
-| graphics located | 104 | 104 | 99 |
+| staging operations | 19 336 | 19 347 | 19 356 |
+| graphics located | 105 | 104 | 101 |
 | credits entries | 275 | 275 | 275 |
 | Trainer Hill floor tables | 4 | 4 | 4 |
-| source texts left unmapped | 17 | 1 | 10 |
-| manifest size (gzip) | 224 KiB | 225 KiB | 226 KiB |
+| source texts left unmapped | 0 | 1 | 10 |
+| manifest size (gzip, KiB) | 225.9 | 224.0 | 225.0 |
 
-The 37 edit gap between German and Italian is not noise: those are the entries no
-anchor could place, listed in the manifest as unmapped rather than guessed.
+All **37 original gaps have explicit decisions**: 28 verified retail placements,
+eight keyboard rows supplied by the complete retail table, and one unused empty
+initializer deliberately retained. They are not 37 forced one-to-one placements.
+The keyboard has nine columns, all six umlauts work, and the battle HUD uses the
+retail **KP** asset rather than a hand-drawn replacement.
 
-Edits by kind, German: `c` 9 078, `asm` 7 945, `u16s` 1 186, `u32` 1 008,
-`u16array` 72, `bard` 19, plus three single-row tables.
+The partial BPED reference table has **15 087 evidenced nonzero addresses among
+48 858 names**; unproven names remain at zero. The production builder reconstructs
+all **6 396 pack entries byte-for-byte on macOS and Linux**. All three
+[upstream CI jobs pass](https://github.com/ZallaxDev/emerald-3ds/actions/runs/39972088637).
+These are results of the port integration, not a claim that the research scripts
+recreate the complete process unattended.
 
-The same tool chain produced the **18 837 of 19 347 (97.36 %)** placement rate the
-mapping reached before the last manual pass, each tool validated against the
-Italian mapping as an *oracle* before it was trusted on German.
+See the [completion record](docs/german-completion.md) and its
+[machine-readable facts](docs/german-validation.json) for the tested commit,
+recipe budget, symbol limits and human-test boundary. No game data is included.
+
+Counts are operations, not distinct sentences or a universal coverage percentage.
+The initial automatic pass reached 18 837 of 19 347 candidate placements before
+manual repairs; that historical figure is not the final manifest size.
 
 ## Requirements
 
@@ -92,7 +104,7 @@ are the language data, and that is what the carver walks.
 
 ## The pilot
 
-The 86 tools share a workspace and an order. `romcarve.py` is the entry point that
+The research tools share a workspace and an order. `romcarve.py` is the entry point that
 knows both: it reads a per-game profile, prints the questions in the order they have
 to be asked with the tool that answers each and **what stays a human decision**,
 tracks which artefacts exist, runs a stage with your arguments and logs it, and
@@ -113,13 +125,19 @@ $ python3 romcarve.py plan audit
     human    read what the audits cannot see: files shifted by exactly one record
 
 $ python3 romcarve.py run ref -- DE      # executes the stage's tool, logs it
-$ python3 romcarve.py report work/german.json.gz
+$ python3 romcarve.py report work/german.json.gz --symbols work/german-symbols.s.gz
 files      449
-edits      19310
-    c           9078
+edits      19336
+    c           9102
     asm         7945
     u16s        1186
 ...
+unmapped   0 source texts
+decisions  37
+...
+id_lists   4
+symbols    48858 names, 15087 nonzero, 33771 unresolved
+           metadata only; cartridge addresses are not validated
 ```
 
 `docs/adding-a-language.md` is the honest version of "can we do another language":
@@ -169,7 +187,7 @@ translated ROM - and says which one each of the port's five languages took.
   "credits": 6257408,
   "credits_entries": 275,
   "floors": [["sFloors_Normal", 6518944, 3808]],
-  "unmapped_source_texts": 17,
+  "unmapped_source_texts": [],
   "checks": {}
 }
 ```
@@ -181,25 +199,23 @@ against, so the manifest refuses to be applied to a drifted tree.
 
 ## Where the method stops
 
-- **37 entries could not be placed** in German and are shipped as unmapped. They
-  are structural tables with no surviving anchor; guessing them would have been
-  worse than listing them.
-- **A German reference symbol table cannot be built from the port's tree.** It
-  needs a GBA link of the game, and the port's tree overflows GBA IWRAM by 2.6x,
-  its makefile dropped two variables its own data rules still call, and the pinned
-  upstream carries no `tools/agbcc` (it is installed from `pret/agbcc`, see
-  `build/container_de_validate.sh`). The recipe and the exact
-  `nm -S --defined-only` format are in `docs/method.md`.
-- **The pilot drives the tools, it does not replace the reading.** It knows the
-  order and the artefacts, and it says on every stage what a human still has to do
-  there. A new game is a profile plus whatever table descriptors it needs; a new
-  language needs one already mapped, to serve as the oracle.
-- Tool docstrings and comments are in French, the working language of the
-  project. The method documentation here is in English.
+- **Zero unresolved source editions is not an exhaustive playthrough.** Every
+  original gap has a reviewed decision, including table adaptations and a
+  no-change case. See the completion record for the actual play checks.
+- **The reference is partial, not a German retail ELF.** Its nonzero addresses
+  were established against BPED; unknowns remain zero. A 3DS ELF's addresses or
+  an arbitrary GBA link are not retail addresses. A recipe that merely generates
+  is not proof: the production reconstruction must match every file and generator
+  output. `report --symbols` checks metadata shape and counts, not cartridge truth.
+- **The pilot drives the research tools, not the human decisions.** Tools share a
+  prepared workspace and an oracle language. The final port integrations and
+  validation live in the linked port revision; they are not all automated here.
+- Existing research-tool comments are in French. The CLI output, new tests and
+  public method documentation are in English.
 
 ## Provenance
 
-The port ships five languages, and they share one pipeline: a checked-in manifest of
+The five retail-cartridge variants share one pipeline: a checked-in manifest of
 source spans and ROM offsets, staged from the reader's own cartridge at bootstrap
 time and carrying no game text. What differs between languages is the **encoder
 side** - the tree the text is re-encoded from when a manifest is self-checked.
@@ -207,37 +223,37 @@ side** - the tree the text is re-encoded from when a manifest is self-checked.
 | language | encoder side | offsets measured in | landed as |
 |---|---|---|---|
 | English | the decompilation itself | - | the port's base |
-| French | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | BPEF | [port #34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34) (andyst-dev) **closed**, landed through [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43) (Sneazynek); metric units in [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62) (andyst-dev) |
-| Italian | an Italian tree in a multi-language branch (`data/text/italian/`, `#elif ITALIAN` arms) | BPEI | [port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63) (andyst-dev), re-pinned in [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88) (yesyes-source) |
-| Spanish | the port's Spanish tree | BPES | [port #52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52) (Deunnis) |
-| German | **none exists.** The only German source text is 2 137 literals in [`AsparagusEduardo/pokeemerald`](https://github.com/AsparagusEduardo/pokeemerald) branch `pret_europe_german`; the rest had to be located with no encoder at all | BPED | [port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96) (andyst-dev, open), from [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28) |
+| French | [`malahx/pokeemerald`](https://github.com/malahx/pokeemerald/tree/french_enhanced), branch `french_enhanced`, at the commit whose `rom.sha1` is BPEF | BPEF | [port #34](https://github.com/ZallaxDev/emerald-3ds/pull/34) (andyst-dev) **closed**, landed through [#43](https://github.com/ZallaxDev/emerald-3ds/pull/43) (Sneazynek); metric units in [#62](https://github.com/ZallaxDev/emerald-3ds/pull/62) (andyst-dev) |
+| Italian | an Italian tree in a multi-language branch (`data/text/italian/`, `#elif ITALIAN` arms) | BPEI | [port #63](https://github.com/ZallaxDev/emerald-3ds/pull/63) (andyst-dev), re-pinned in [#88](https://github.com/ZallaxDev/emerald-3ds/pull/88) (yesyes-source) |
+| Spanish | the port's Spanish tree | BPES | [port #52](https://github.com/ZallaxDev/emerald-3ds/pull/52) (Deunnis) |
+| German | **No complete retail-matching encoder tree was used.** There are 2 137 anchor literals in [`AsparagusEduardo/pokeemerald`](https://github.com/AsparagusEduardo/pokeemerald) branch `pret_europe_german`; the rest had to be located with no encoder at all | BPED | [port #96](https://github.com/ZallaxDev/emerald-3ds/pull/96) (andyst-dev, open), from [issue #28](https://github.com/ZallaxDev/emerald-3ds/issues/28) |
 
 ### Authorship
 
-The French, Italian and German variants were authored by
+The French, Italian and German manifest/staging integrations were authored by
 [**andyst-dev**](https://github.com/andyst-dev), on the rails the Spanish variant set:
 
-- **French** - [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34):
+- **French** - [#34](https://github.com/ZallaxDev/emerald-3ds/pull/34):
   the manifest over the source files (448 at the time, 454 today),
   `tools/localize_french.py` and its SHA-1/SHA-256 checks, the BPEF builder profile
   and web payload, `--french-rom` in the bootstrap and release scripts, the ending
   tilemap, berry names and Pokédex-unit patches, and `docs/FRENCH.md`. Closed once
-  Sneazynek's follow-up [#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43)
+  Sneazynek's follow-up [#43](https://github.com/ZallaxDev/emerald-3ds/pull/43)
   landed it (port menus, accents, locale tables); native metric units followed in
-  [#62](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/62).
-- **Italian** - [#63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63),
+  [#62](https://github.com/ZallaxDev/emerald-3ds/pull/62).
+- **Italian** - [#63](https://github.com/ZallaxDev/emerald-3ds/pull/63),
   merged: 449 source files, 19 347 edits, 104 graphics, 275 credits entries, the four
   Trainer Hill floors, the Italian glyphs, the fourth `CTR_TEXT` column and the
   Italian ending tilemap, plus the layout patch (metric Pokédex units with a decimal
   comma, the wider type table, glued berry names). Re-pinned later in
-  [#88](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/88).
-- **German** - [#96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96),
-  open: 449 source files, 19 310 edits, 104 graphics, 275 credits entries, the four
-  floors, with **no encoder tree** - built with the tooling in this repository, from
-  [issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
+  [#88](https://github.com/ZallaxDev/emerald-3ds/pull/88).
+- **German** - [#96](https://github.com/ZallaxDev/emerald-3ds/pull/96),
+  open, finalized and CI-green: 449 source files, 19 336 operations, 105 graphics,
+  275 credits entries, the four floors, with **no encoder tree** - built with the tooling in this repository, from
+  [issue #28](https://github.com/ZallaxDev/emerald-3ds/issues/28).
 
-The Spanish variant is Deunnis's ([#52](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/52)),
-and [#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps
+The Spanish variant is Deunnis's ([#52](https://github.com/ZallaxDev/emerald-3ds/pull/52)),
+and [#75](https://github.com/ZallaxDev/emerald-3ds/pull/75) is what keeps
 a translated ROM's name and name-prefix order correct.
 
 Note that `pret/pokeemerald` is English only, and `pret_europe` is a branch of
@@ -248,9 +264,10 @@ The Italian, French and Spanish manifests ship inside the port under
 was scored on. German is the case this repository exists for: with no encoder tree,
 both sides of every edit had to be established from the cartridge alone, which is
 what the carver, the anchors and the audits do. A separate fix for the port's own
-test harness, found while building the German variant, is
-[#97](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/97), and
-[#75](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/75) is what keeps
+test harness, found while building the German variant, was proposed in
+[#97](https://github.com/ZallaxDev/emerald-3ds/pull/97), now closed
+as redundant with the already-merged [#92](https://github.com/ZallaxDev/emerald-3ds/pull/92). Also,
+[#75](https://github.com/ZallaxDev/emerald-3ds/pull/75) is what keeps
 a translated ROM's name and name-prefix order correct.
 
 ## Credits
@@ -262,7 +279,7 @@ a translated ROM's name and name-prefix order correct.
   branch `pret_europe_german` - the multi-language source that carries 2 137
   German literals. All 2 137 were found in the retail cartridge, which is what
   made those edits need no alignment at all.
-- [`ZallaxDev/pokeemerald-3Ds-dualscreen`](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen)
+- [`ZallaxDev/emerald-3ds`](https://github.com/ZallaxDev/emerald-3ds)
   - the port this manifest was built for, and the source of the Italian mapping
   used as the oracle and the reference.
 - The Italian and French mappings, whose languages were mapped before German and

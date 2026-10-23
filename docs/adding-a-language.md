@@ -56,9 +56,13 @@ That last line is the honest part of the list, and it never becomes empty:
   file shifted by exactly one record;
 - the unmapped list has to be read once more before shipping.
 
-For German that meant 19 310 edits placed, 37 left unmapped on purpose, and 21
-repair passes for files the placer had put on the wrong object. Budget for that
-work, not for the compute: the tools are fast, the reading is not.
+The first German pass placed 19 310 operations and deliberately left 37 source
+editions unresolved. Finalization reviewed every one: 28 proved placements, eight
+keyboard rows handled as a complete retail table, and one unused invariant kept.
+The final manifest has 19 336 operations and no unmapped source editions. These
+counts need not increase by 37: grouped tables replace individual rows. The
+[completion record](german-completion.md) separates mapping, runtime and release
+proof. Budget for the reading and repair passes, not only for compute.
 
 ## Adding a new game
 

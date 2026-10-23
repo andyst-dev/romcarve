@@ -1,6 +1,6 @@
 # Three ways a language gets into a port
 
-The port ships five languages and they share one pipeline: a checked-in manifest of
+The five retail-cartridge variants share one pipeline: a checked-in manifest of
 source spans and ROM offsets, staged from the reader's own cartridge at bootstrap
 time, carrying no game text. What changes from one language to the next is where the
 **two sides of an edit** come from - the text, and the offset it sits at.
@@ -24,10 +24,10 @@ branch `french_enhanced` for French, or a multi-language branch that keeps every
 language side by side (`data/text/<lang>/*.inc`, `src/data/text/<lang>/*.h`,
 `#elif ITALIAN` arms in ~50 C and header files, `.ifdef ITALIAN` plus `.include` in
 the assembly) for Italian. Italian landed as
-[port #63](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/63); French
-opened as [#34](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/34)
+[port #63](https://github.com/ZallaxDev/emerald-3ds/pull/63); French
+opened as [#34](https://github.com/ZallaxDev/emerald-3ds/pull/34)
 (closed, carried in by the follow-up
-[#43](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/43)).
+[#43](https://github.com/ZallaxDev/emerald-3ds/pull/43)).
 
 What it buys: the text in source form, and an encoder to re-encode from when the
 manifest is self-checked. What it can also buy: the **offsets**, if the tree builds
@@ -48,12 +48,12 @@ Two traps worth naming:
 
 ## Route B: the language exists as a cartridge and nowhere else
 
-German. No decompilation of that language exists, so nothing is transplanted and
+German. No complete retail-matching encoder tree was used, so nothing is transplanted and
 nothing is re-encoded from a language tree: every text span, table, asset and credit
 entry is located in the retail image, and that is what the rest of this repository
-does. It landed as
-[port #96](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/pull/96), from
-[issue #28](https://github.com/ZallaxDev/pokeemerald-3Ds-dualscreen/issues/28).
+does. Its finalized, CI-green integration is proposed in
+[port #96](https://github.com/ZallaxDev/emerald-3ds/pull/96), from
+[issue #28](https://github.com/ZallaxDev/emerald-3ds/issues/28).
 
 The one thing this route needs from elsewhere: **a language that has already been
 mapped**, to serve as the oracle. Every tool here is scored on that language before
@@ -61,7 +61,7 @@ it is pointed at a new one, which is what makes a 97 % placement rate trustworth
 rather than optimistic. Italian and French took route A, so their manifests exist -
 which is why they appear in this repository as inputs.
 
-The only German source text anywhere is 2 137 literals in the `pret_europe_german`
+This work also used 2 137 German source literals in the `pret_europe_german`
 branch of `AsparagusEduardo/pokeemerald` (note: `pret/pokeemerald` itself is English
 only, and `pret_europe` is a branch of that fork, not of `pret/`). All 2 137 were
 found in the retail cartridge, so those edits needed no alignment at all - a
@@ -89,8 +89,10 @@ Per-language work that lives in the port, not here:
   from locating the text;
 - **display width and layout.** Line lengths, decimal commas, metric units, table
   widths that the compiler has to accept;
-- **the reference symbol table** a release wants per language, which needs a build
-  of the game itself (see `method.md`).
+- **the reference symbol table** a release wants per language: a verified retail
+  build can supply one; otherwise a partial table can be derived from cartridge
+  evidence. Unknown addresses stay zero. Actual production reconstruction, not a
+  successful link alone, validates its usefulness (see `method.md`).
 
 And in every route, the last step is the same: read the doubtful entries, list what
 could not be placed, and ship that list rather than a guess.

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Render docs/cartridge-map.svg (light and dark) from docs/cartridge-map.json.
+"""Render docs/cartridge-map-final.svg (light and dark) from docs/cartridge-map.json.
 
 The data file holds only derived facts: for each 64 KiB block of the 16 MiB
 image, whether the English and German cartridges are byte-identical there, and
-how many of the 19 310 placed edits fall in it. No game bytes, no text.
+how many final staging operations start in it. No game bytes, no text.
 
   python3 docs/make_cartridge_map.py        # writes both SVGs
-  rsvg-convert -w 1800 -b '#ffffff' docs/cartridge-map.svg > docs/cartridge-map.png
+  rsvg-convert -w 1800 -b '#ffffff' docs/cartridge-map-final.svg > docs/cartridge-map-final.png
 
 Every number printed in the picture is computed from the data file, and the
 script parses its own output before returning.
@@ -46,6 +46,9 @@ def esc(s: str) -> str:
 def build(data: dict, pal: dict, dark: bool) -> str:
     blocks = data["blocks"]
     n = len(blocks)
+    assert n * data["block_bytes"] == data["image_bytes"]
+    assert sum(b["edits"] for b in blocks) == data["edits_total"]
+    assert all(b["edits"] >= 0 for b in blocks)
     cell = (W - 2 * PAD) / n
     peak = max(b["edits"] for b in blocks) or 1
     same_pct = 100.0 * sum(1 for b in blocks if b["same"]) / n
@@ -87,7 +90,7 @@ def build(data: dict, pal: dict, dark: bool) -> str:
 
     # bars: where the edits landed
     a(f'<text x="{PAD}" y="{BAR_TOP - 8}" font-size="12.5" fill="{pal["text"]}">'
-      f'the {edits:,} placed edits, by cartridge offset (peak {peak:,} per 64 KiB block)</text>')
+      f'the {edits:,} staging operations, by cartridge offset (peak {peak:,} per 64 KiB block)</text>')
     for i, b in enumerate(blocks):
         c = b["edits"]
         if not c:
@@ -104,13 +107,13 @@ def build(data: dict, pal: dict, dark: bool) -> str:
     a(f'<rect x="{PAD}" y="{y - 9}" width="11" height="11" fill="{pal["accent"]}" '
       f'fill-opacity="{0.22 if not dark else 0.30}" stroke="{pal["accent"]}" stroke-width="0.6"/>')
     a(f'<text x="{PAD + 18}" y="{y}" font-size="11.5" fill="{pal["text"]}">'
-      f'the cartridges differ here: language data</text>')
+      f'different at the same offset</text>')
     a(f'<rect x="{PAD + 250}" y="{y - 9}" width="11" height="11" fill="{pal["tile"]}" '
       f'stroke="{pal["border"]}"/>')
     a(f'<text x="{PAD + 268}" y="{y}" font-size="11.5" fill="{pal["text"]}">'
       f'identical at the same offset</text>')
     a(f'<text x="{PAD}" y="{y + 19}" font-size="11.5" fill="{pal["muted"]}">'
-      f'{in_diff:,} of {edits:,} edits ({100.0 * in_diff / edits:.1f} %) sit inside a '
+      f'{in_diff:,} of {edits:,} operations ({100.0 * in_diff / edits:.1f} %) sit inside a '
       f'differing block, spread over {carrying} of {n} blocks.</text>')
     a('</svg>')
     return "\n".join(o)
@@ -121,7 +124,7 @@ def main() -> int:
     for name, pal in PALETTES.items():
         svg = build(data, pal, dark=(name == "dark"))
         ET.fromstring(svg)  # fail loudly if the XML is not valid
-        out = HERE / (f"cartridge-map{'-dark' if name == 'dark' else ''}.svg")
+        out = HERE / (f"cartridge-map-final{'-dark' if name == 'dark' else ''}.svg")
         out.write_text(svg)
         print(f"wrote {out.relative_to(HERE.parent)}")
     blocks = data["blocks"]
